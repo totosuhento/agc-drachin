@@ -32,6 +32,16 @@ function t(string $key, mixed ...$args): string
         $L = is_file($f) ? array_merge($en, require $f) : $en;
     }
     $s = $L[$key] ?? $key;
+    if (str_contains($s, '{')) {
+        // {niche} = topik situs (jamak), {item} = satu konten. Diatur lewat site.niche / site.item di config.
+        $niche = trim((string)cfg('site.niche', '')) ?: ($L['_niche'] ?? '');
+        $item = trim((string)cfg('site.item', '')) ?: ($L['_item'] ?? '');
+        $startsWithPlaceholder = $s[0] === '{';
+        $s = strtr($s, ['{niche}' => str_replace('%', '%%', $niche), '{item}' => str_replace('%', '%%', $item)]);
+        if ($startsWithPlaceholder) {
+            $s = mb_strtoupper(mb_substr($s, 0, 1)) . mb_substr($s, 1);
+        }
+    }
     return $args ? vsprintf($s, $args) : $s;
 }
 
@@ -81,12 +91,13 @@ function fmt_duration(int $s): string
 
 function fmt_number(int $n): string
 {
-    return match (true) {
-        $n >= 1_000_000_000 => round($n / 1e9, 1) . 'B',
-        $n >= 1_000_000     => round($n / 1e6, 1) . 'M',
-        $n >= 1_000         => round($n / 1e3, 1) . 'K',
-        default             => (string)$n,
+    [$value, $suffix] = match (true) {
+        $n >= 1_000_000_000 => [round($n / 1e9, 1), t('num_b')],
+        $n >= 1_000_000     => [round($n / 1e6, 1), t('num_m')],
+        $n >= 1_000         => [round($n / 1e3, 1), t('num_k')],
+        default             => [$n, ''],
     };
+    return str_replace('.', t('dec_point'), (string)$value) . $suffix;
 }
 
 function fmt_date(?string $d): string
@@ -95,7 +106,7 @@ function fmt_date(?string $d): string
         return '';
     }
     $months = explode(',', t('months'));
-    return date('j', $ts) . ' ' . ($months[(int)date('n', $ts) - 1] ?? date('M', $ts)) . ' ' . date('Y', $ts);
+    return date('j', $ts) . t('day_suffix') . ' ' . ($months[(int)date('n', $ts) - 1] ?? date('M', $ts)) . ' ' . date('Y', $ts);
 }
 
 /** Bersihkan deskripsi YouTube: hapus link, hashtag, dan baris promosi kosong. */
@@ -212,4 +223,28 @@ function cache_clear(): void
     foreach (glob($dir . '/*/*.cache') ?: [] as $f) {
         @unlink($f);
     }
+}
+
+/** Impressum wajib untuk situs berbahasa Jerman; tampil juga bila legal.name diisi. */
+function show_impressum(): bool
+{
+    return cfg('site.lang') === 'de' || trim((string)cfg('legal.name', '')) !== '';
+}
+
+/** Argumen halaman statis: %1$s nama situs, %2$s email, %3$s nama pemilik, %4$s alamat (sudah di-escape). */
+function legal_args(): array
+{
+    $name = trim((string)cfg('legal.name', ''));
+    $address = trim((string)cfg('legal.address', ''));
+    return [
+        e(cfg('site.name')),
+        e(cfg('site.contact_email')),
+        $name !== '' ? e($name) : '[Name / Firma eintragen: legal.name]',
+        $address !== '' ? nl2br(e(str_replace(['\\n', ' | '], "\n", $address))) : '[Anschrift eintragen: legal.address]',
+    ];
+}
+
+function tagline(): string
+{
+    return trim((string)cfg('site.tagline', '')) ?: t('tagline_default');
 }

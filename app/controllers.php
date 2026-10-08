@@ -32,7 +32,7 @@ function page_home(): array
     [$series] = series_list(1, 8);
     $content = view('home', ['latest' => $latest, 'popular' => $popular, 'series' => $series, 'channels' => channels_all()]);
     return html($content, [
-        'title' => cfg('site.name') . ' – ' . cfg('site.tagline'),
+        'title' => cfg('site.name') . ' – ' . tagline(),
         'description' => t('home_meta', cfg('site.name')),
         'canonical' => url(),
         'schema' => [
@@ -197,10 +197,13 @@ function page_search(): array
 
 function page_static(string $name): array
 {
+    if ($name === 'impressum' && !show_impressum()) {
+        return not_found();
+    }
     return html(view('page', ['name' => $name]), [
         'title' => t('page_' . $name) . ' | ' . cfg('site.name'),
         'canonical' => url($name),
-        'description' => excerpt(strip_tags(t('page_' . $name . '_body', cfg('site.name'), cfg('site.contact_email'))), 158),
+        'description' => excerpt(html_entity_decode((string)preg_replace('/<[^>]+>/', ' ', t('page_' . $name . '_body', ...legal_args()))), 158),
     ]);
 }
 
@@ -240,7 +243,7 @@ function sitemap_part(string $kind, string $n): array
     $offset = ($page - 1) * SITEMAP_SIZE;
     $urls = [];
     if ($kind === 'pages') {
-        foreach (['', 'latest', 'popular', 'series', 'about', 'privacy', 'disclaimer', 'contact'] as $p) {
+        foreach (['', 'latest', 'popular', 'series', 'about', 'privacy', 'disclaimer', 'contact', ...(show_impressum() ? ['impressum'] : [])] as $p) {
             $urls[] = [url($p), null];
         }
         foreach (channels_all() as $c) {

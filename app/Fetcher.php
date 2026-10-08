@@ -287,7 +287,8 @@ final class Fetcher
             && ($sn['liveBroadcastContent'] ?? 'none') === 'none'
             && !isset($cd['contentRating']['ytRating'])          // video 18+ tidak bisa di-embed
             && $duration >= (int)cfg('youtube.min_duration', 0)
-            && $duration > 0;
+            && $duration > 0
+            && title_allowed((string)($sn['title'] ?? ''));
 
         $th = $sn['thumbnails'] ?? [];
         $tags = implode(', ', array_slice((array)($sn['tags'] ?? []), 0, 15));
@@ -307,4 +308,24 @@ final class Fetcher
         ]);
         return $active;
     }
+}
+
+/** Filter judul: youtube.include_keywords (minimal satu harus ada) & youtube.exclude_keywords (tidak boleh ada). */
+function title_allowed(string $title): bool
+{
+    $t = mb_strtolower($title);
+    $has = static function (array $words) use ($t): bool {
+        foreach ($words as $w) {
+            $w = mb_strtolower(trim((string)$w));
+            if ($w !== '' && str_contains($t, $w)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    $include = array_filter((array)cfg('youtube.include_keywords', []), fn($w) => trim((string)$w) !== '');
+    if ($include && !$has($include)) {
+        return false;
+    }
+    return !$has((array)cfg('youtube.exclude_keywords', []));
 }

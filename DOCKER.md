@@ -55,8 +55,14 @@ Isi di menu *Environment / Variables*:
 | `YOUTUBE_API_KEY` | ✅ | API key YouTube Data API v3 |
 | `CONTACT_EMAIL` | ✅ | `admin@domainanda.com` |
 | `SITE_NAME` | | `ShortDrama Hub` |
-| `SITE_TAGLINE` | | `Free short dramas from official channels` |
-| `SITE_LANG` | | `en` (CPM tinggi) atau `id` |
+| `SITE_TAGLINE` | | kosong = otomatis sesuai niche & bahasa |
+| `SITE_LANG` | | `en` (US/UK), `de` (Jerman) atau `id` |
+| `SITE_NICHE` | | topik situs (jamak), mis. `Software-Tutorials`. Kosong = short dramas |
+| `SITE_ITEM` | | satu konten, mis. `Tutorial` |
+| `YOUTUBE_INCLUDE` | | hanya ambil video yang judulnya memuat salah satu kata ini, dipisah koma: `tutorial,anleitung,tipps` |
+| `YOUTUBE_EXCLUDE` | | buang video yang judulnya memuat kata ini: `trailer,livestream,#shorts` |
+| `LEGAL_NAME` | wajib utk `de` | nama untuk Impressum |
+| `LEGAL_ADDRESS` | wajib utk `de` | alamat Impressum, baris dipisah ` \| `: `Musterstr. 1 \| 10115 Berlin \| Deutschland` |
 | `YOUTUBE_CHANNELS` | | dipisah koma: `@reelshortapp,@dramaboxapp` |
 | `MIN_DURATION` | | `120` (detik; sembunyikan Shorts) |
 | `AI_ENABLED` | | `true` untuk deskripsi unik |
@@ -79,6 +85,27 @@ Ingin mengatur semuanya lewat file? Salin `config.sample.php` ke `storage/config
 - Buka domain Anda — video & serial sudah tampil.
 - Ambil video berjalan otomatis setiap jam (cron internal), tidak perlu setting crontab.
 - Jika ada console: `php /var/www/html/cron/status.php` untuk ringkasan.
+
+## Situs kedua dari image yang sama (contoh: tutorial software berbahasa Jerman)
+
+Satu image bisa dipakai untuk banyak situs. Buat **container baru** di Nusapod dengan image yang sama, **volume baru** (jangan berbagi volume dengan situs drama), lalu isi environment berbeda:
+
+```
+SITE_URL=https://domain-jerman-anda.de
+SITE_NAME=Tutorial Hafen
+SITE_LANG=de
+SITE_NICHE=Software-Tutorials
+SITE_ITEM=Tutorial
+YOUTUBE_API_KEY=...            (boleh key yang sama; kuota dibagi)
+YOUTUBE_CHANNELS=@handle1,@handle2,@handle3
+YOUTUBE_INCLUDE=tutorial,anleitung,so geht,erklärt,tipps
+YOUTUBE_EXCLUDE=trailer,livestream,werbung
+CONTACT_EMAIL=...
+LEGAL_NAME=...
+LEGAL_ADDRESS=Straße 1 | PLZ Stadt | Land
+```
+
+Situs berbahasa Jerman otomatis menampilkan **Impressum** dan **Datenschutz** versi Jerman. Teks tersebut hanya template, bukan nasihat hukum; cek ulang (misalnya dengan generator Datenschutz/Impressum Jerman) sebelum daftar AdSense. Untuk AdSense di Uni Eropa, aktifkan juga pesan persetujuan cookie (CMP) di menu **Privasi & pesan** pada akun AdSense.
 
 ## Update script nanti
 

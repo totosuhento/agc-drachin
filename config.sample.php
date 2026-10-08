@@ -6,9 +6,11 @@
 return [
     'site' => [
         'name'          => 'ShortDrama Hub',
-        'tagline'       => 'Free short dramas from official channels',
+        'tagline'       => '',                       // kosong = otomatis sesuai niche & bahasa
         'url'           => 'https://example.com',   // tanpa garis miring di akhir
-        'lang'          => 'en',                     // 'en' (CPM tinggi, target US/UK) atau 'id'
+        'lang'          => 'en',                     // 'en' (US/UK), 'de' (Jerman) atau 'id'
+        'niche'         => '',                       // topik situs (jamak), mis. 'Software-Tutorials'. Kosong = 'short dramas'
+        'item'          => '',                       // satu konten, mis. 'Tutorial'. Kosong = 'short drama'
         'timezone'      => 'UTC',
         'contact_email' => 'admin@example.com',
         'per_page'      => 24,
@@ -25,6 +27,10 @@ return [
             '@reelshortapp',
             '@dramaboxapp',
         ],
+
+        // Filter judul (huruf besar/kecil diabaikan). include: minimal satu kata harus ada; exclude: tidak boleh ada.
+        'include_keywords'      => [],   // contoh: ['tutorial', 'anleitung', 'so geht', 'tipps']
+        'exclude_keywords'      => [],   // contoh: ['#shorts', 'trailer', 'livestream']
 
         'min_duration'          => 120,   // detik; video lebih pendek (Shorts/teaser) disembunyikan. 0 = tampilkan semua
         'initial_pages'         => 20,    // halaman (x50 video) saat pertama kali ambil channel
@@ -55,5 +61,11 @@ return [
         'footer'       => '',
     ],
 
-    'analytics' => '',          // kode Google Analytics / lainnya (dimasukkan ke <head>)
+    'analytics' => '',
+
+    // Wajib untuk situs Jerman (Impressum & Datenschutz): nama dan alamat yang bisa dihubungi
+    'legal' => [
+        'name'    => '',   // nama lengkap / nama usaha
+        'address' => '',   // alamat; pisahkan baris dengan ' | ', mis. 'Musterstr. 1 | 10115 Berlin | Deutschland'
+    ],          // kode Google Analytics / lainnya (dimasukkan ke <head>)
 ];

@@ -22,9 +22,11 @@ $snippet = static function (string $key, string $file) use ($env): string {
 return [
     'site' => [
         'name'          => $env('SITE_NAME', 'ShortDrama Hub'),
-        'tagline'       => $env('SITE_TAGLINE', 'Free short dramas from official channels'),
+        'tagline'       => $env('SITE_TAGLINE', ''),
         'url'           => rtrim((string)$env('SITE_URL', 'http://localhost'), '/'),
         'lang'          => $env('SITE_LANG', 'en'),
+        'niche'         => $env('SITE_NICHE', ''),
+        'item'          => $env('SITE_ITEM', ''),
         'timezone'      => $env('SITE_TIMEZONE', 'UTC'),
         'contact_email' => $env('CONTACT_EMAIL', 'admin@example.com'),
         'per_page'      => (int)$env('PER_PAGE', 24),
@@ -34,6 +36,8 @@ return [
         'api_key'                => $env('YOUTUBE_API_KEY'),
         'channels'               => array_values(array_filter(array_map('trim',
                                         explode(',', (string)$env('YOUTUBE_CHANNELS', '@reelshortapp,@dramaboxapp'))))),
+        'include_keywords'       => array_values(array_filter(array_map('trim', explode(',', (string)$env('YOUTUBE_INCLUDE', ''))))),
+        'exclude_keywords'       => array_values(array_filter(array_map('trim', explode(',', (string)$env('YOUTUBE_EXCLUDE', ''))))),
         'min_duration'           => (int)$env('MIN_DURATION', 120),
         'initial_pages'          => (int)$env('INITIAL_PAGES', 20),
         'pages_per_run'          => 2,
@@ -59,4 +63,8 @@ return [
         'footer'       => $snippet('ADS_FOOTER', 'footer.html'),
     ],
     'analytics' => $snippet('ANALYTICS', 'analytics.html'),
+    'legal' => [
+        'name'    => $env('LEGAL_NAME', ''),
+        'address' => $env('LEGAL_ADDRESS', ''),
+    ],
 ];

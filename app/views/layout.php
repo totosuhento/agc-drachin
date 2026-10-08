@@ -60,6 +60,7 @@ $lang = cfg('site.lang', 'en');
       <a href="/privacy"><?= e(t('page_privacy')) ?></a>
       <a href="/disclaimer"><?= e(t('page_disclaimer')) ?></a>
       <a href="/contact"><?= e(t('page_contact')) ?></a>
+      <?php if (show_impressum()): ?><a href="/impressum"><?= e(t('page_impressum')) ?></a><?php endif; ?>
     </nav>
     <p class="muted small"><?= e(t('footer_note')) ?></p>
     <p class="muted small">© <?= date('Y') ?> <?= e(cfg('site.name')) ?></p>

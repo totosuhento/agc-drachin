@@ -6,9 +6,13 @@ final class AI
 {
     public static function describe(string $type, string $title, string $description, string $channel): string
     {
-        $lang = cfg('site.lang') === 'id' ? 'Indonesian' : 'English';
-        $kind = $type === 'series' ? 'a short drama series (playlist)' : 'a short drama video';
+        $lang = ['id' => 'Indonesian', 'de' => 'German (natural, fluent, informal "du")'][cfg('site.lang')] ?? 'English';
+        $niche = trim((string)cfg('site.niche', '')) ?: t('_niche');
+        $kind = $type === 'series' ? "a playlist of videos about $niche" : "a video about $niche";
         $desc = mb_substr(clean_description($description), 0, 2500);
+        $focus = preg_match('/drama/i', $niche)
+            ? 'Describe the premise, the mood and the kind of viewer who will enjoy it. No spoilers.'
+            : 'Explain what the viewer will learn or see, the main steps or topics covered, and who it is useful for.';
         $prompt = <<<P
         Write an original page description in $lang for $kind on a website that embeds official YouTube videos.
 
@@ -21,9 +25,9 @@ final class AI
 
         Rules:
         - 120 to 180 words, 2 short paragraphs, plain text only.
-        - Use only facts implied by the title and description. Do not invent names, plot twists or endings.
-        - Describe the premise, the mood and the kind of viewer who will enjoy it.
-        - No hashtags, no links, no emojis, no "download the app" calls to action, no spoilers.
+        - Use only facts implied by the title and description. Do not invent names, features, numbers or steps.
+        - $focus
+        - No hashtags, no links, no emojis, no "download the app" calls to action.
         - Output only the description.
         P;
         return trim(self::complete($prompt));

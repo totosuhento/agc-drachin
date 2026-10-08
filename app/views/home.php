@@ -1,7 +1,7 @@
 <?php /** @var array $latest @var array $popular @var array $series @var array $channels */ ?>
 <section class="hero">
   <h1><?= e(cfg('site.name')) ?></h1>
-  <p><?= e(cfg('site.tagline')) ?></p>
+  <p><?= e(tagline()) ?></p>
 </section>
 
 <?php if (!$latest): ?>

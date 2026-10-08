@@ -1,0 +1,7 @@
+config.php
+storage/*.sqlite*
+storage/*.lock
+storage/logs/*.log
+storage/cache/*/
+storage/config.php
+storage/ads/
