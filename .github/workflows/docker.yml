@@ -39,12 +39,22 @@ jobs:
       - name: Smoke test
         run: |
           IMAGE=$(echo "ghcr.io/${{ github.repository }}:latest" | tr '[:upper:]' '[:lower:]')
-          docker run -d --name agc -p 8080:80 -e CRON_ENABLED=0 -e SITE_URL=http://localhost:8080 "$IMAGE"
-          sleep 8
-          for p in / /latest /series /privacy /robots.txt /sitemap.xml /assets/style.css; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$p")
-            echo "$p -> $code"
-            [ "$code" = "200" ] || { docker logs agc; exit 1; }
-          done
-          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/video/tidak-ada)
-          echo "/video/tidak-ada -> $code"; [ "$code" = "404" ]
+          docker pull "$IMAGE"
+          check() {   # $1 = env tambahan, $2 = daftar halaman
+            docker rm -f agc >/dev/null 2>&1 || true
+            docker run -d --name agc -p 8080:80 -e CRON_ENABLED=0 -e SITE_URL=http://localhost:8080 $1 "$IMAGE" >/dev/null
+            for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/robots.txt && break; sleep 2; done
+            for p in $2; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$p")
+              echo "[$1] $p -> $code"
+              if [ "$code" != "200" ]; then
+                echo "::error title=Smoke test::[$1] $p -> $code | $(docker logs agc 2>&1 | tail -5 | tr '\n' ' ')"
+                exit 1
+              fi
+            done
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/video/tidak-ada)
+            echo "[$1] /video/tidak-ada -> $code"
+            [ "$code" = "404" ] || { echo "::error title=Smoke test::[$1] 404 page -> $code"; exit 1; }
+          }
+          check "-e SITE_LANG=en" "/ /latest /series /privacy /robots.txt /sitemap.xml /assets/style.css"
+          check "-e SITE_LANG=de -e SITE_NICHE=Software-Tutorials" "/ /latest /privacy /impressum /sitemap-pages-1.xml"
