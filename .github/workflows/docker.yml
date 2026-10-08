@@ -42,17 +42,17 @@ jobs:
           docker pull "$IMAGE"
           check() {   # $1 = env tambahan, $2 = daftar halaman
             docker rm -f agc >/dev/null 2>&1 || true
-            docker run -d --name agc -p 8080:80 -e CRON_ENABLED=0 -e SITE_URL=http://localhost:8080 $1 "$IMAGE" >/dev/null
-            for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/robots.txt && break; sleep 2; done
+            docker run -d --name agc -e CRON_ENABLED=0 -e SITE_URL=http://localhost $1 "$IMAGE" >/dev/null
+            for i in $(seq 1 30); do docker exec agc curl -s -o /dev/null http://localhost/robots.txt && break; sleep 2; done
             for p in $2; do
-              code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$p" || true)
+              code=$(docker exec agc curl -s -o /dev/null -w '%{http_code}' "http://localhost$p" || true)
               echo "[$1] $p -> $code"
               if [ "$code" != "200" ]; then
                 echo "::error title=Smoke test::[$1] $p -> $code | ps: $(docker ps -a --format '{{.Status}} {{.Ports}}' | tr '\n' ' ') | logs: $(docker logs agc 2>&1 | tail -8 | tr '\n' ' ')"
                 exit 1
               fi
             done
-            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/video/tidak-ada || true)
+            code=$(docker exec agc curl -s -o /dev/null -w '%{http_code}' http://localhost/video/tidak-ada || true)
             echo "[$1] /video/tidak-ada -> $code"
             [ "$code" = "404" ] || { echo "::error title=Smoke test::[$1] 404 page -> $code"; exit 1; }
           }
