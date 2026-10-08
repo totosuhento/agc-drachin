@@ -34,3 +34,17 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+
+      # Uji cepat: jalankan image & pastikan halaman utama bisa dibuka
+      - name: Smoke test
+        run: |
+          IMAGE=$(echo "ghcr.io/${{ github.repository }}:latest" | tr '[:upper:]' '[:lower:]')
+          docker run -d --name agc -p 8080:80 -e CRON_ENABLED=0 -e SITE_URL=http://localhost:8080 "$IMAGE"
+          sleep 8
+          for p in / /latest /series /privacy /robots.txt /sitemap.xml /assets/style.css; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$p")
+            echo "$p -> $code"
+            [ "$code" = "200" ] || { docker logs agc; exit 1; }
+          done
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/video/tidak-ada)
+          echo "/video/tidak-ada -> $code"; [ "$code" = "404" ]
