@@ -1,28 +1,25 @@
 #!/bin/sh
-# Entrypoint container: siapkan folder storage, sesuaikan port, jalankan cron internal, lalu Apache.
+# Entrypoint container: siapkan folder storage, atur port, jalankan cron internal, lalu Apache.
+# Bisa berjalan sebagai user 1000 (NusaPod) maupun root.
 set -e
 APP=/var/www/html
 ST="$APP/storage"
 
 mkdir -p "$ST/cache" "$ST/logs" "$ST/ads" 2>/dev/null || true
 
-# Beberapa hosting membatasi hak akses container (chown ditolak). Jangan gagal: pakai chmod sebagai cadangan.
-if ! chown -R www-data:www-data "$ST" 2>/dev/null; then
-    echo "[agc] chown tidak diizinkan di hosting ini, memakai chmod untuk folder storage"
-    chmod -R a+rwX "$ST" 2>/dev/null || true
-fi
+# Port Apache (konfigurasi memakai ${AGC_PORT}). Default 8080; hosting bisa menggantinya lewat variabel PORT.
+export AGC_PORT="${PORT:-${AGC_PORT:-8080}}"
+echo "[agc] Apache berjalan di port $AGC_PORT sebagai uid $(id -u)"
 
-# Beberapa hosting container menentukan port lewat variabel PORT
-if [ -n "$PORT" ] && [ "$PORT" != "80" ]; then
-    sed -i "s/^Listen 80$/Listen $PORT/" /etc/apache2/ports.conf
-    sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
-fi
-
-# Jalankan perintah PHP sebagai www-data; bila tidak bisa (hak akses dibatasi), jalankan langsung.
-if su -s /bin/sh www-data -c true 2>/dev/null; then
-    as_www() { su -s /bin/sh www-data -c "$1"; }
+if [ "$(id -u)" = "0" ]; then
+    # Root: storage milik user proses Apache (www-data), cron dijalankan sebagai user itu juga
+    RUN_USER=$( . /etc/apache2/envvars 2>/dev/null; echo "${APACHE_RUN_USER:-www-data}" )
+    chown -R "$RUN_USER":"$RUN_USER" "$ST" 2>/dev/null || chmod -R a+rwX "$ST" 2>/dev/null || true
+    as_www() { su -s /bin/sh "$RUN_USER" -c "$1" 2>/dev/null || (umask 000; sh -c "$1"); }
 else
-    as_www() { (umask 000; sh -c "$1"); }
+    # Non-root (mis. NusaPod uid 1000): cukup pastikan storage bisa ditulis
+    chmod -R u+rwX "$ST" 2>/dev/null || true
+    as_www() { sh -c "$1"; }
 fi
 
 # Cron internal (tidak butuh crontab). Matikan dengan CRON_ENABLED=0

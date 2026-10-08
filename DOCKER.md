@@ -38,7 +38,7 @@ Di panel Nusapod, buat container/aplikasi baru dengan pengaturan berikut (nama m
 | Pengaturan | Isi |
 |---|---|
 | Image | `ghcr.io/USERNAME-GITHUB/agc-drama-yt:latest` |
-| Port container | `80` |
+| Port container | `8080` |
 | **Persistent volume / storage** | mount ke **`/var/www/html/storage`** (min. 1 GB) |
 | RAM | 512 MB disarankan (256 MB masih bisa) |
 | Domain | domain Anda + aktifkan SSL/HTTPS |
@@ -72,7 +72,7 @@ Isi di menu *Environment / Variables*:
 | `ADS_HEAD`, `ADS_TOP`, `ADS_BELOW_PLAYER`, `ADS_IN_LIST`, `ADS_SIDEBAR`, `ADS_FOOTER` | | kode iklan (HTML) |
 | `ANALYTICS` | | kode Google Analytics |
 | `FETCH_INTERVAL` | | `3600` (detik antar pengambilan video) |
-| `PORT` | | isi hanya jika Nusapod mewajibkan port selain 80 |
+| `PORT` | | isi hanya jika hosting mewajibkan port selain 8080 |
 
 Kode iklan yang panjang juga bisa disimpan sebagai file di volume: `storage/ads/top.html`, `storage/ads/below_player.html`, dst. (jika Nusapod punya file manager/console).
 
@@ -119,4 +119,4 @@ Upload file baru ke GitHub → Actions membuat image baru → di Nusapod klik **
 | Situs tampil tapi kosong | Lihat logs; biasanya `YOUTUBE_API_KEY` salah / API belum di-enable |
 | Isi hilang setelah redeploy | Volume belum di-mount ke `/var/www/html/storage` |
 | Link/canonical mengarah ke `localhost` | `SITE_URL` belum diisi |
-| 502 / tidak bisa diakses | Port container di panel tidak sama dengan port Apache (default 80; atau isi `PORT`) |
+| 502 / tidak bisa diakses | Port container di panel tidak sama dengan port Apache (default 8080; atau isi `PORT`) |
