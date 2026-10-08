@@ -48,6 +48,7 @@ jobs:
               code=$(docker exec agc curl -s -o /dev/null -w '%{http_code}' "http://localhost$p" || true)
               echo "[$1] $p -> $code"
               if [ "$code" != "200" ]; then
+                echo "::error title=Diag::id=$(docker exec agc id) | PORT=$(docker exec agc printenv PORT) | listen=$(docker exec agc grep -h Listen /etc/apache2/ports.conf | tr '\n' ' ') | cfg=$(docker image inspect "$IMAGE" -f '{{.Config.User}} {{.Config.ExposedPorts}} {{.Config.Env}}')"
                 echo "::error title=Smoke test::[$1] $p -> $code | ps: $(docker ps -a --format '{{.Status}} {{.Ports}}' | tr '\n' ' ') | logs: $(docker logs agc 2>&1 | tail -8 | tr '\n' ' ')"
                 exit 1
               fi
