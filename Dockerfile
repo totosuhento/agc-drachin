@@ -23,6 +23,7 @@ COPY docker/config.php /var/www/html/config.php
 
 RUN chmod +x /usr/local/bin/agc-entrypoint \
  && rm -rf /var/www/html/docker /var/www/html/.github \
+ && mkdir -p /var/www/html/storage/cache /var/www/html/storage/logs \
  && chown -R www-data:www-data /var/www/html/storage
 
 # Database, cache & log disimpan di sini → pasang sebagai persistent volume

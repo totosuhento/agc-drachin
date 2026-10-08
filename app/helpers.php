@@ -171,6 +171,7 @@ function logmsg(string $msg): void
     if (PHP_SAPI === 'cli') {
         echo $line;
     }
+    @mkdir(ROOT . '/storage/logs', 0775, true);
     @file_put_contents(ROOT . '/storage/logs/cron.log', $line, FILE_APPEND);
 }
 

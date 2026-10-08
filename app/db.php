@@ -8,6 +8,9 @@ function db(): PDO
         return $pdo;
     }
     $path = (string)cfg('db_path', ROOT . '/storage/database.sqlite');
+    if (!is_dir(dirname($path))) {
+        @mkdir(dirname($path), 0775, true);
+    }
     $pdo = new PDO('sqlite:' . $path, null, null, [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
