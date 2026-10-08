@@ -21,14 +21,20 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 COPY docker/config.php /var/www/html/config.php
 
-RUN chmod +x /usr/local/bin/agc-entrypoint \
+# 🔧 Semua folder storage dibuat saat build + dikasih hak akses user 1000
+RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf \
+ && sed -i 's/:80/:8080/g' /etc/apache2/sites-available/000-default.conf \
+ && chmod +x /usr/local/bin/agc-entrypoint \
  && rm -rf /var/www/html/docker /var/www/html/.github \
- && mkdir -p /var/www/html/storage/cache /var/www/html/storage/logs \
- && chown -R www-data:www-data /var/www/html/storage
+ && mkdir -p /var/www/html/storage/cache \
+             /var/www/html/storage/logs \
+             /var/www/html/storage/ads \
+ && chown -R 1000:1000 /var/www/html \
+ && chmod -R 755 /var/www/html
 
-# Database, cache & log disimpan di sini → pasang sebagai persistent volume
-VOLUME ["/var/www/html/storage"]
-EXPOSE 80
+EXPOSE 8080
+
+USER 1000:1000
 
 ENTRYPOINT ["agc-entrypoint"]
 CMD ["apache2-foreground"]
